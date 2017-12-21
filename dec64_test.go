@@ -12,6 +12,9 @@ func testOneDec(t *testing.T, s string, ref int64) {
 	if ref != int64(d) {
 		t.Errorf("Result is %d should be %d", d, ref)
 	}
+	if s != d.String() {
+		t.Errorf("String is %s should be %s", d.String(), s)
+	}
 }
 
 func TestParse(t *testing.T) {

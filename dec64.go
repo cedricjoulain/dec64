@@ -12,7 +12,7 @@ type Dec64 int64
 
 // return a dec64 form string
 func Parse(s string) (res Dec64, err error) {
-	var d int64
+	var coef int64
 	if len(s) == 0 {
 		return
 	}
@@ -23,16 +23,16 @@ func Parse(s string) (res Dec64, err error) {
 		start = 1
 	}
 	dot := false
-	factor := int64(0)
+	exp := int64(0)
 	for i := start; i < len(s); i++ {
 		if s[i] >= '0' && s[i] <= '9' {
 			if neg {
-				d = d*10 - int64(s[i]-'0')
+				coef = 10*coef - int64(s[i]-'0')
 			} else {
-				d = d*10 + int64(s[i]-'0')
+				coef = 10*coef + int64(s[i]-'0')
 			}
 			if dot {
-				factor--
+				exp--
 			}
 			continue
 		}
@@ -48,17 +48,30 @@ func Parse(s string) (res Dec64, err error) {
 		return
 	}
 
-	if factor < -127 {
+	// -128 is kept for special values
+	if exp < -127 {
 		err = fmt.Errorf("%s is to small for dec64")
 		return
 	}
 
-	d <<= 8
-	d |= (factor & 0xff)
-	res = Dec64(d)
+	res = Dec64((coef << 8) | (exp & 0xff))
 	return
 }
 
 func (d Dec64) String() (s string) {
-	return
+	exp := int8(d)
+	coef := int64(d) >> 8
+	sign := ""
+	if coef < 0 {
+		sign = "-"
+		coef *= -1
+	}
+	for ; coef != 0; coef /= 10 {
+		s = string((coef%10)+'0') + s
+		exp += 1
+		if exp == 0 {
+			s = "." + s
+		}
+	}
+	return sign + s
 }
