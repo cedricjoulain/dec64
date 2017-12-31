@@ -10,6 +10,9 @@ import (
 
 type Dec64 int64
 
+const Empty = Dec64(0x0000000000000001)
+const NotAvailable = Dec64(0x00000000000000ff)
+
 // return a dec64 form string
 func Parse(s string) (res Dec64, err error) {
 	if len(s) == 0 {
