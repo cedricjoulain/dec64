@@ -97,3 +97,23 @@ func (d Dec64) String() (s string) {
 	}
 	return sign + s
 }
+
+var exp []float64
+
+func init() {
+	exp = make([]float64, 256)
+	f := 1.0
+	for i := 0; i < 128; i++ {
+		exp[i] = f
+		f *= 10
+	}
+	f = .1
+	for i := 255; i > 128; i-- {
+		exp[i] = f
+		f /= 10
+	}
+}
+
+func Float64(d Dec64) (f float64) {
+	return float64(int64(d)>>8) * exp[d&0xff]
+}
