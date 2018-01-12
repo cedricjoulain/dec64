@@ -29,7 +29,7 @@ func Parse(s string) (res Dec64, err error) {
 	factor = 1
 	for i := start; i < len(s); i++ {
 		if s[i] == '0' {
-			if coef == 0 {
+			if coef == 0 && !dot {
 				continue
 			}
 			factor *= 10
@@ -78,6 +78,9 @@ func Parse(s string) (res Dec64, err error) {
 func (d Dec64) String() (s string) {
 	exp := int8(d)
 	coef := int64(d) >> 8
+	if coef == 0 {
+		return "0"
+	}
 	sign := ""
 	if coef < 0 {
 		sign = "-"
@@ -92,9 +95,19 @@ func (d Dec64) String() (s string) {
 			}
 		}
 	}
+	// Bigger
 	for ; exp > 0; exp-- {
 		s += "0"
 	}
+	// Smaller
+	for ; exp < 0; exp++ {
+		if exp == -1 {
+			s = ".0" + s
+		} else {
+			s = "0" + s
+		}
+	}
+
 	return sign + s
 }
 
