@@ -27,7 +27,13 @@ func Parse(s string) (res Dec64, err error) {
 	dot := false
 	var exp, coef, addExp, factor int64
 	factor = 1
-	for i := start; i < len(s); i++ {
+	expMode := false
+	i := start
+	for ; i < len(s); i++ {
+		if s[i] == 'E' || s[i] == 'e' {
+			expMode = true
+			break
+		}
 		if s[i] == '0' {
 			if coef == 0 && !dot {
 				continue
@@ -63,6 +69,23 @@ func Parse(s string) (res Dec64, err error) {
 		}
 		err = fmt.Errorf("Unable to parse dec64 from %s", s)
 		return
+	}
+	// was written like 1.5E-7
+	if expMode {
+		df := int64(1)
+		toAdd := int64(0)
+		for i++; i < len(s); i++ {
+			switch s[i] {
+			case '-':
+				df = -1
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+				toAdd = 10*toAdd + int64(s[i]-'0')
+			default:
+				err = fmt.Errorf("Unable to handle %c in exponent", s[i])
+				return
+			}
+		}
+		addExp += df * toAdd
 	}
 	exp += addExp
 	// -128 is kept for special values
