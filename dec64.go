@@ -90,7 +90,7 @@ func Parse(s string) (res Dec64, err error) {
 	exp += addExp
 	// -128 is kept for special values
 	if exp < -127 {
-		err = fmt.Errorf("%s is to small for dec64")
+		err = fmt.Errorf("%s is to small for dec64", s)
 		return
 	}
 
