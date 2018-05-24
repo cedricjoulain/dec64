@@ -6,6 +6,7 @@ package dec64
 import (
 	"errors"
 	"fmt"
+	"strconv"
 )
 
 type Dec64 int64
@@ -152,6 +153,11 @@ func init() {
 
 func Float64(d Dec64) (f float64) {
 	return float64(int64(d)>>8) * exp[d&0xff]
+}
+
+func FromFloat64(f float64) (Dec64, error) {
+	// TODO optimize !
+	return Parse(strconv.FormatFloat(f, 'g', -1, 64))
 }
 
 // Compare 2 dec64, empty and not available are every thing

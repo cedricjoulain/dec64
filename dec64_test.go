@@ -38,3 +38,28 @@ func TestParse(t *testing.T) {
 	testOneDec(t, "3E-8", ".00000003", 3*256+256-8)
 	testOneDec(t, "1.2E-7", ".00000012", 12*256+256-8)
 }
+
+func testOneFloat(t *testing.T, f float64, ref int64) {
+	d, err := FromFloat64(f)
+	if err != nil {
+		t.Error(err)
+	}
+	if ref != int64(d) {
+		t.Errorf("%g Result is %d should be %d", f, d, ref)
+	}
+	// Less accurante than from string
+	if math.Abs(f-Float64(d)) > 0.000000001 {
+		t.Errorf("Float64 is %g should be %g", Float64(d), f)
+	}
+}
+
+func TestFromFloat(t *testing.T) {
+	testOneFloat(t, 0.09112614, 2332829432)
+	testOneFloat(t, 6.0, 6*256)
+	testOneFloat(t, 24.7165, 63274492)
+	testOneFloat(t, 58803.0596245, 150535832638969)
+	testOneFloat(t, 6.35e-06, 162808)
+	testOneFloat(t, 912550.0000003, 2336128000001017)
+	testOneFloat(t, 999.99999986, 25599999996664)
+	testOneFloat(t, 0.00023224, 5945592)
+}
