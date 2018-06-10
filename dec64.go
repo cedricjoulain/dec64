@@ -77,6 +77,8 @@ func Parse(s string) (res Dec64, err error) {
 		toAdd := int64(0)
 		for i++; i < len(s); i++ {
 			switch s[i] {
+			case '+':
+				// Nothing to do...
 			case '-':
 				df = -1
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
