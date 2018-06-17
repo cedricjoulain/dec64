@@ -162,6 +162,16 @@ func FromFloat64(f float64) (Dec64, error) {
 	return Parse(strconv.FormatFloat(f, 'g', -1, 64))
 }
 
+func FromInt64(i int64) (Dec64, error) {
+	// TODO > 0x00FFFFFF FFFFFFFF
+	return Dec64(i * 256), nil
+}
+
+func Int64(d Dec64) int64 {
+	// TODO > 0x00FFFFFF FFFFFFFF
+	return int64(d) / 256
+}
+
 // Compare 2 dec64, empty and not available are every thing
 func (a *Dec64) Equal(b Dec64) bool {
 	if *a == Empty || *a == NotAvailable {

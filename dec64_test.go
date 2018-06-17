@@ -66,3 +66,24 @@ func TestFromFloat(t *testing.T) {
 	testOneFloat(t, 999.99999986, 25599999996664)
 	testOneFloat(t, 0.00023224, 5945592)
 }
+
+func testOneInt64(t *testing.T, i int64, ref int64) {
+	d, err := FromInt64(i)
+	if err != nil {
+		t.Error(err)
+	}
+	if ref != int64(d) {
+		t.Errorf("%d Result is %d should be %d", i, d, ref)
+	}
+	if Int64(d) != i {
+		t.Errorf("Int64 is %d should be %d", Int64(d), i)
+	}
+}
+
+func TestFromInt64(t *testing.T) {
+	testOneInt64(t, 0, 0)
+	testOneInt64(t, 1, 256)
+	testOneInt64(t, -1, -256)
+	testOneInt64(t, 37, 37*256)
+	testOneInt64(t, 2, 2*256)
+}
