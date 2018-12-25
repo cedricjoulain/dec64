@@ -40,6 +40,8 @@ func TestParse(t *testing.T) {
 	testOneDec(t, "1.2E-7", ".00000012", 12*256+256-8)
 	testOneDec(t, "1.000506e+06", "1000506", 1000506*256)
 	testOneDec(t, "6.151e+06", "6151000", 6151*256+3)
+	testOneDec(t, "7003.69", "7003.69", 700369*256+254)
+	testOneDec(t, "7003.1", "7003.1", 70031*256+255)
 }
 
 func testOneFloat(t *testing.T, f float64, ref int64) {

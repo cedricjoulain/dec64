@@ -154,7 +154,7 @@ func init() {
 	f = .1
 	in := int64(10)
 	for i := 255; i > 128; i-- {
-		expf[i] = f
+		expf[i] = 1.0 / float64(in)
 		expi[i] = in
 		f /= 10
 		in *= 10
@@ -162,7 +162,11 @@ func init() {
 }
 
 func Float64(d Dec64) (f float64) {
-	return float64(int64(d)>>8) * expf[d&0xff]
+	if d&0xff > 127 {
+		return float64(int64(d)>>8) / expf[256-d&0xff]
+	} else {
+		return float64(int64(d)>>8) * expf[d&0xff]
+	}
 }
 
 func FromFloat64(f float64) (Dec64, error) {
