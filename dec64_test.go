@@ -1,7 +1,9 @@
 package dec64
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"math"
 	"strconv"
 	"testing"
@@ -218,5 +220,33 @@ func testParseError(t *testing.T, value, ref string) {
 	}
 	if err.Error() != ref {
 		t.Errorf("Parsing %s error is \n%s should be \n%s", value, err.Error(), ref)
+	}
+}
+
+func TestListRW(t *testing.T) {
+	var buf bytes.Buffer
+	values := []Dec64{Dec64(1 * 256), Dec64(-1 * 256), Dec64(100 * 256)}
+
+	err := ListToWriter(&buf, values)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	read, err := ListFromReader(&buf)
+	if err != nil {
+		if err != io.EOF {
+			t.Errorf(err.Error())
+			return
+		}
+	}
+	if len(read) != len(values) {
+		t.Errorf("len is %d should be %d", len(read), len(values))
+		return
+	}
+	for i, value := range values {
+		if !value.Equal(read[i]) {
+			t.Errorf(
+				"read[%d] is %s should be %s", i, read[i].String(), value.String())
+		}
 	}
 }
