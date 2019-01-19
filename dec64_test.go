@@ -1,6 +1,7 @@
 package dec64
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"testing"
@@ -108,4 +109,114 @@ func TestEqual(t *testing.T) {
 	testOneEqual(t, Dec64(123456), Empty, true)
 	testOneEqual(t, NotAvailable, Dec64(123456), true)
 	testOneEqual(t, Dec64(123456), NotAvailable, true)
+}
+
+// example of list of traded volumes for BTC on 20180511
+var sVolumes = []string{
+	".06447466",
+	".0244",
+	".04082425",
+	".18808132",
+	".00410578",
+	".02433487",
+	".14442756",
+	".003216",
+	".00096851",
+	".00153346",
+	".00680321",
+	".00204112",
+	".08067412",
+	".02662033",
+	".04217344",
+	"1",
+}
+
+func TestLists(t *testing.T) {
+	var (
+		err error
+	)
+	dVolumes := make([]Dec64, len(sVolumes))
+	for i, v := range sVolumes {
+		dVolumes[i], err = Parse(v)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+		}
+	}
+	Homogenize(dVolumes)
+	for i, ref := range sVolumes {
+		v := dVolumes[i].String()
+		if v != ref {
+			t.Errorf("sVolumes[%d] is %s should %s", i, v, ref)
+		}
+	}
+}
+
+func TestOverflow(t *testing.T) {
+	ref := int64(123578)
+	s := fmt.Sprintf("%d.458", ref)
+	d, err := Parse(s)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	if Int64(d) != ref {
+		t.Errorf("Int64(%s) is %d should %d", d.String(), Int64(d), ref)
+		return
+	}
+	// Huge and small
+	values := make([]Dec64, 2)
+	values[0], err = Parse("0.000000000000001")
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	values[1], err = Parse("100000000000000")
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+	}
+	// values could be modified
+	refs := make([]Dec64, 2)
+	for i, v := range values {
+		refs[i] = v
+	}
+	Homogenize(values)
+	// Now check it's ok
+	for i, v := range values {
+		if !v.Equal(refs[i]) {
+			t.Errorf("values[%d] is %s should %s", i, v.String(), refs[i].String())
+			return
+		}
+	}
+}
+
+// Test errors and border line behavior to ensure full coverage
+func TestBorders(t *testing.T) {
+	testOneDec(t, "", "0", 0)
+
+	testParseError(t, "3.2.5", "Only one dot allowed")
+	testParseError(t, "toto", "Unable to parse dec64 from toto")
+	testParseError(t, "3.7ea", "Unable to handle a in exponent")
+	// to big or too small
+	toBig := "10"
+	toSmall := "."
+	for i := 0; i < 127; i++ {
+		toBig += "0"
+		toSmall += "0"
+	}
+	toSmall += "1"
+	testParseError(t, toBig, fmt.Sprintf("%s is too big for dec64", toBig))
+	testParseError(t, toSmall, fmt.Sprintf("%s is too small for dec64", toSmall))
+}
+
+func testParseError(t *testing.T, value, ref string) {
+	_, err := Parse(value)
+	if err == nil {
+		t.Errorf("Parsing %s should be in error", value)
+		return
+	}
+	if err.Error() != ref {
+		t.Errorf("Parsing %s error is \n%s should be \n%s", value, err.Error(), ref)
+	}
 }

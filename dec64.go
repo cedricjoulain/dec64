@@ -93,7 +93,11 @@ func Parse(s string) (res Dec64, err error) {
 	exp += addExp
 	// -128 is kept for special values
 	if exp < -127 {
-		err = fmt.Errorf("%s is to small for dec64", s)
+		err = fmt.Errorf("%s is too small for dec64", s)
+		return
+	}
+	if exp > 127 {
+		err = fmt.Errorf("%s is too big for dec64", s)
 		return
 	}
 
@@ -102,6 +106,8 @@ func Parse(s string) (res Dec64, err error) {
 }
 
 func (d Dec64) String() (s string) {
+	// normalize to avoid 1.0000 for example
+	d = Normalize(d)
 	exp := int8(d)
 	coef := int64(d) >> 8
 	if coef == 0 {
@@ -161,6 +167,7 @@ func init() {
 	}
 }
 
+// Convert Dec64 to float64 using precomputed exponent
 func Float64(d Dec64) (f float64) {
 	if d&0xff > 127 {
 		return float64(int64(d)>>8) / expf[256-d&0xff]
@@ -174,15 +181,19 @@ func FromFloat64(f float64) (Dec64, error) {
 	return Parse(strconv.FormatFloat(f, 'g', -1, 64))
 }
 
+// Convert int64 to Dec64
+// i must be <= 0x00FFFFFF
+// which makes around 281 474 976 711 000
 func FromInt64(i int64) (Dec64, error) {
 	// TODO > 0x00FFFFFF FFFFFFFF
 	return Dec64(i * 256), nil
 }
 
+// Convert Dec64 to "normal" int64 keeping sign
 func Int64(d Dec64) int64 {
 	mant := int64(d) >> 8
 	exp := int64(d) & 0xff
-	if exp > 128 {
+	if exp > 127 {
 		return mant / expi[exp]
 	} else {
 		return mant * expi[exp]
@@ -218,4 +229,43 @@ func (a *Dec64) Equal(b Dec64) bool {
 		}
 	}
 	return true
+}
+
+// Ensure all exponents will be the same or closer as possible
+// Dec64 will probably no longer be normalized
+func Homogenize(values []Dec64) {
+	// First find smaller exponent
+	exp := int64(127)
+	for _, d := range values {
+		e := int64(d) & 0xff
+		if e > 127 {
+			// negatif
+			e -= 256
+		}
+		if exp > e {
+			exp = e
+		}
+	}
+	// modify !
+	for i, d := range values {
+		e := int64(d) & 0xff
+		if e > 127 {
+			// negatif
+			e -= 256
+		}
+		// we need to multiply mantisse by 10^exp
+		e = e - exp
+		if e == 0 {
+			// nothing to do
+			continue
+		}
+		old := int64(d) >> 8
+		mant := (old * expi[e]) & 0xffffffffffffff
+		// simple overflow check TODO optimize?
+		if mant/expi[e] != old {
+			// do nothing
+			continue
+		}
+		values[i] = Dec64(mant<<8 | (exp & 0xff))
+	}
 }
