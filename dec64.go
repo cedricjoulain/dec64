@@ -16,6 +16,7 @@ const NotAvailable = Dec64(0x00000000000000ff)
 
 // return a dec64 form string
 func Parse(s string) (res Dec64, err error) {
+	res = Empty
 	if len(s) == 0 {
 		return
 	}

@@ -195,7 +195,7 @@ func TestOverflow(t *testing.T) {
 
 // Test errors and border line behavior to ensure full coverage
 func TestBorders(t *testing.T) {
-	testOneDec(t, "", "0", 0)
+	testOneDec(t, "", "0", 1)
 
 	testParseError(t, "3.2.5", "Only one dot allowed")
 	testParseError(t, "toto", "Unable to parse dec64 from toto")
