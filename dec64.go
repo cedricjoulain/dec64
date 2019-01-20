@@ -238,6 +238,10 @@ func Homogenize(values []Dec64) {
 	// First find smaller exponent
 	exp := int64(127)
 	for _, d := range values {
+		if d == 0 {
+			// forget 0
+			continue
+		}
 		e := int64(d) & 0xff
 		if e > 127 {
 			// negatif
@@ -249,6 +253,10 @@ func Homogenize(values []Dec64) {
 	}
 	// modify !
 	for i, d := range values {
+		if d == 0 {
+			// forget 0
+			continue
+		}
 		e := int64(d) & 0xff
 		if e > 127 {
 			// negatif
