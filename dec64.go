@@ -10,6 +10,7 @@ import (
 )
 
 type Dec64 int64
+type ParseError error
 
 const Empty = Dec64(0x0000000000000001)
 const NotAvailable = Dec64(0x00000000000000ff)
@@ -63,13 +64,13 @@ func Parse(s string) (res Dec64, err error) {
 		}
 		if s[i] == '.' {
 			if dot {
-				err = errors.New("Only one dot allowed")
+				err = ParseError(errors.New("Only one dot allowed"))
 				return
 			}
 			dot = true
 			continue
 		}
-		err = fmt.Errorf("Unable to parse dec64 from %s", s)
+		err = ParseError(fmt.Errorf("Unable to parse dec64 from %s", s))
 		return
 	}
 	// was written like 1.5E-7
@@ -85,7 +86,7 @@ func Parse(s string) (res Dec64, err error) {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				toAdd = 10*toAdd + int64(s[i]-'0')
 			default:
-				err = fmt.Errorf("Unable to handle %c in exponent", s[i])
+				err = ParseError(fmt.Errorf("Unable to handle %c in exponent", s[i]))
 				return
 			}
 		}
@@ -94,11 +95,11 @@ func Parse(s string) (res Dec64, err error) {
 	exp += addExp
 	// -128 is kept for special values
 	if exp < -127 {
-		err = fmt.Errorf("%s is too small for dec64", s)
+		err = ParseError(fmt.Errorf("%s is too small for dec64", s))
 		return
 	}
 	if exp > 127 {
-		err = fmt.Errorf("%s is too big for dec64", s)
+		err = ParseError(fmt.Errorf("%s is too big for dec64", s))
 		return
 	}
 
