@@ -27,6 +27,7 @@ func testOneDec(t *testing.T, s, refs string, ref int64) {
 }
 
 func TestParse(t *testing.T) {
+	testOneDec(t, "+1", "1", 256)
 	testOneDec(t, "1", "1", 256)
 	testOneDec(t, "-1", "-1", -256)
 	testOneDec(t, "345", "345", 345*256)

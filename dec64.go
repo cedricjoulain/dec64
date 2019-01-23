@@ -23,9 +23,14 @@ func Parse(s string) (res Dec64, err error) {
 	}
 	start := 0
 	neg := false
-	if s[0] == '-' {
-		neg = true
+	if s[0] == '+' {
+		// just forget
 		start = 1
+	} else {
+		if s[0] == '-' {
+			neg = true
+			start = 1
+		}
 	}
 	dot := false
 	var exp, coef, addExp, factor int64
