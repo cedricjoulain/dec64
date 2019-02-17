@@ -33,7 +33,7 @@ func Parse(s string) (res Dec64, err error) {
 		}
 	}
 	dot := false
-	var exp, coef, addExp, factor int64
+	var exp, ncoef, coef, addExp, factor int64
 	factor = 1
 	expMode := false
 	i := start
@@ -58,12 +58,41 @@ func Parse(s string) (res Dec64, err error) {
 		addExp = 0
 		if s[i] >= '1' && s[i] <= '9' {
 			if neg {
-				coef = 10*coef - int64(s[i]-'0')
+				ncoef = 10*coef - int64(s[i]-'0')
+				// check for overload
+				if ncoef < (-1 * 0x7fffffffffffff) {
+					// Can round up ?
+					if s[i] >= '5' && coef > (-1*0x7fffffffffffff) {
+						coef--
+					}
+					if dot {
+						break
+					}
+					exp++
+				} else {
+					coef = ncoef
+					if dot {
+						exp--
+					}
+				}
 			} else {
-				coef = 10*coef + int64(s[i]-'0')
-			}
-			if dot {
-				exp--
+				ncoef = 10*coef + int64(s[i]-'0')
+				// check for overload
+				if ncoef > 0x7fffffffffffff {
+					// Can round up ?
+					if s[i] >= '5' && coef != 0x7fffffffffffff {
+						coef++
+					}
+					if dot {
+						break
+					}
+					exp++
+				} else {
+					coef = ncoef
+					if dot {
+						exp--
+					}
+				}
 			}
 			continue
 		}
