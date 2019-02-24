@@ -310,6 +310,9 @@ func Homogenize(values []Dec64) {
 			// do nothing
 			continue
 		}
-		values[i] = Dec64(mant<<8 | (exp & 0xff))
+		// do not set to zero when undefined
+		if mant != 0 || (exp&0xff) != 0 {
+			values[i] = Dec64(mant<<8 | (exp & 0xff))
+		}
 	}
 }
