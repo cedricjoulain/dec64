@@ -141,6 +141,7 @@ func Parse(s string) (res Dec64, err error) {
 	return
 }
 
+// TODO benchmark and use strings.Builder
 func (d Dec64) String() (s string) {
 	// normalize to avoid 1.0000 for example
 	d = Normalize(d)
@@ -175,7 +176,10 @@ func (d Dec64) String() (s string) {
 			s = "0" + s
 		}
 	}
-
+	if s[0] == '.' {
+		// start by 0
+		s = "0" + s
+	}
 	return sign + s
 }
 
