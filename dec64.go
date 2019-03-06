@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Dec64 int64
@@ -192,11 +193,13 @@ func (d Dec64) String() string {
 	}
 	if exp > 0 {
 		// Bigger
-		z := make([]byte, exp)
-		for i := range z {
-			z[i] = '0'
+		var z strings.Builder
+		z.Grow(int(exp) + len(chr))
+		z.Write(chr)
+		for i := int8(0); i < exp; i++ {
+			z.WriteByte('0')
 		}
-		return fmt.Sprintf("%s%s", string(chr), string(z))
+		return z.String()
 	} else {
 		return string(chr)
 	}
