@@ -164,10 +164,6 @@ func (d Dec64) String() (s string) {
 			}
 		}
 	}
-	// Bigger
-	for ; exp > 0; exp-- {
-		s += "0"
-	}
 	// Smaller
 	for ; exp < 0; exp++ {
 		if exp == -1 {
@@ -175,6 +171,10 @@ func (d Dec64) String() (s string) {
 		} else {
 			s = "0" + s
 		}
+	}
+	// Bigger
+	for ; exp > 0; exp-- {
+		s += "0"
 	}
 	if s[0] == '.' {
 		// start by 0
