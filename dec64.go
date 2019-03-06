@@ -4,6 +4,7 @@
 package dec64
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strconv"
@@ -142,7 +143,7 @@ func Parse(s string) (res Dec64, err error) {
 }
 
 // TODO benchmark and use strings.Builder
-func (d Dec64) String() (s string) {
+func (d Dec64) String() string {
 	// normalize to avoid 1.0000 for example
 	d = Normalize(d)
 	exp := int8(d)
@@ -150,37 +151,55 @@ func (d Dec64) String() (s string) {
 	if coef == 0 {
 		return "0"
 	}
-	sign := ""
+	minus := false
 	if coef < 0 {
-		sign = "-"
+		minus = true
 		coef *= -1
 	}
+	var bb bytes.Buffer
+	dotLast := false
 	for ; coef != 0; coef /= 10 {
-		s = string((coef%10)+'0') + s
+		bb.WriteByte(uint8(coef%10) + '0')
+		dotLast = false
 		if exp < 0 {
 			exp += 1
 			if exp == 0 {
-				s = "." + s
+				bb.WriteByte('.')
+				dotLast = true
 			}
 		}
+	}
+	if dotLast {
+		bb.WriteByte('0')
 	}
 	// Smaller
 	for ; exp < 0; exp++ {
 		if exp == -1 {
-			s = ".0" + s
+			bb.Write([]byte{'0', '.', '0'})
 		} else {
-			s = "0" + s
+			bb.WriteByte('0')
 		}
 	}
-	// Bigger
-	for ; exp > 0; exp-- {
-		s += "0"
+	if minus {
+		bb.WriteByte('-')
 	}
-	if s[0] == '.' {
-		// start by 0
-		s = "0" + s
+	chr := bb.Bytes()
+	// reverse buffer
+	for i := 0; i < len(chr)/2; i++ {
+		k := chr[i]
+		chr[i] = chr[len(chr)-1-i]
+		chr[len(chr)-1-i] = k
 	}
-	return sign + s
+	if exp > 0 {
+		// Bigger
+		z := make([]byte, exp)
+		for i := range z {
+			z[i] = '0'
+		}
+		return fmt.Sprintf("%s%s", string(chr), string(z))
+	} else {
+		return string(chr)
+	}
 }
 
 var (

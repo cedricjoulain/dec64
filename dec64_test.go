@@ -150,10 +150,31 @@ var sVolumes = []string{
 	"1",
 }
 
+var sVBench = []string{
+	"0.06447466",
+	"2.44",
+	"4082425",
+	"0.18808132",
+	"0.00410578",
+	"2433400",
+	"0.14442756",
+	"0.003216",
+	"0.00096851",
+	"15.3346",
+	"-0.00680321",
+	"0.00204112",
+	"0.08067412",
+	"0",
+	"1",
+	"10000",
+	"200",
+	"85.236",
+}
+
 func BenchmarkString(b *testing.B) {
 	var err error
-	dVolumes := make([]Dec64, len(sVolumes))
-	for i, v := range sVolumes {
+	dVolumes := make([]Dec64, len(sVBench))
+	for i, v := range sVBench {
 		dVolumes[i], err = Parse(v)
 		if err != nil {
 			b.Errorf(err.Error())
