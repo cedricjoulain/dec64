@@ -150,6 +150,25 @@ var sVolumes = []string{
 	"1",
 }
 
+func BenchmarkString(b *testing.B) {
+	var err error
+	dVolumes := make([]Dec64, len(sVolumes))
+	for i, v := range sVolumes {
+		dVolumes[i], err = Parse(v)
+		if err != nil {
+			b.Errorf(err.Error())
+			return
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, d64 := range dVolumes {
+			d64.String()
+		}
+	}
+	b.SetBytes(8 * int64(len(dVolumes)))
+}
+
 func TestLists(t *testing.T) {
 	var (
 		err error
