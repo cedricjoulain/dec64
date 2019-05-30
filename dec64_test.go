@@ -172,7 +172,10 @@ var sVBench = []string{
 }
 
 func BenchmarkString(b *testing.B) {
-	var err error
+	var (
+		err error
+		s   string
+	)
 	dVolumes := make([]Dec64, len(sVBench))
 	for i, v := range sVBench {
 		dVolumes[i], err = Parse(v)
@@ -184,10 +187,13 @@ func BenchmarkString(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		for _, d64 := range dVolumes {
-			d64.String()
+			s = d64.String()
 		}
 	}
 	b.SetBytes(8 * int64(len(dVolumes)))
+	if s != sVBench[len(sVBench)-1] {
+		b.Errorf("wrong d64 to string")
+	}
 }
 
 func TestLists(t *testing.T) {
