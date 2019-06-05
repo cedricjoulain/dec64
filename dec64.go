@@ -305,7 +305,7 @@ func Homogenize(values []Dec64) {
 		}
 		e := int64(d) & 0xff
 		if e > 127 {
-			// negatif
+			// negative
 			e -= 256
 		}
 		if exp > e {
@@ -320,7 +320,7 @@ func Homogenize(values []Dec64) {
 		}
 		e := int64(d) & 0xff
 		if e > 127 {
-			// negatif
+			// negative
 			e -= 256
 		}
 		// we need to multiply mantisse by 10^exp
