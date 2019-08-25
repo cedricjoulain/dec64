@@ -26,6 +26,20 @@ func testOneDec(t *testing.T, s, refs string, ref int64) {
 	}
 }
 
+func testOneDecPrecision(t *testing.T, s, refs string, ref, n int64) {
+	d, err := Parse(s)
+	if err != nil {
+		t.Error(err)
+	}
+	d = Round(d, n)
+	if ref != int64(d) {
+		t.Errorf("%s Result is %d should be %d", s, d, ref)
+	}
+	if refs != d.String() {
+		t.Errorf("String is %s should be %s", d.String(), refs)
+	}
+}
+
 func TestParse(t *testing.T) {
 	testOneDec(t, "+1", "1", 256)
 	testOneDec(t, "1", "1", 256)
@@ -61,6 +75,19 @@ func TestParse(t *testing.T) {
 		-12345678901234568*256+1)
 	testOneDec(t, "-1234567890123456780", "-1234567890123456800",
 		-12345678901234568*256+2)
+	testOneDecPrecision(t, "79.068001", "79.068", 20241661, -3)
+	testOneDecPrecision(t, "-79.068001", "-79.068", -20241155, -3)
+	testOneDecPrecision(t, "79.084999", "79.085", 20246013, -3)
+	testOneDecPrecision(t, "-79.084999", "-79.085", -20245507, -3)
+	// check same behavior as math.Round
+	testOneDecPrecision(t, "4.5", "5", 1280, 0)
+	testOneDecPrecision(t, "4.51", "5", 1280, 0)
+	testOneDecPrecision(t, "4.49", "4", 1024, 0)
+	testOneDecPrecision(t, "-4.5", "-5", -1280, 0)
+	testOneDecPrecision(t, "-4.51", "-5", -1280, 0)
+	testOneDecPrecision(t, "-4.49", "-4", -1024, 0)
+	testOneDecPrecision(t, "0", "0", 0, 0)
+	testOneDecPrecision(t, "125420.000", "125000", 32003, 3)
 }
 
 func testOneFloat(t *testing.T, f float64, ref int64) {
