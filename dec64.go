@@ -374,3 +374,15 @@ func Round(d Dec64, n int64) Dec64 {
 	}
 	return Dec64(mant<<8 | (e & 0xff))
 }
+
+// Check it's an integer with no decimal parts
+func (d *Dec64) IsInt() bool {
+	// Normalize to ensure exponant is fully significativ
+	e := int64(Normalize(*d)) & 0xff
+	if e > 127 {
+		// negative, we have a decimal part
+		return false
+	} else {
+		return true
+	}
+}

@@ -156,6 +156,25 @@ func TestEqual(t *testing.T) {
 	testOneEqual(t, Dec64(123456), NotAvailable, true)
 }
 
+func testOneIsInt(t *testing.T, s string, ref bool) {
+	d, err := Parse(s)
+	if err != nil {
+		t.Error(err)
+	}
+	if d.IsInt() != ref {
+		t.Errorf("%s IsInt is %t should be %t", s, d.IsInt(), ref)
+	}
+}
+
+func TestIsInt(t *testing.T) {
+	testOneIsInt(t, "0.0002", false)
+	testOneIsInt(t, "20", true)
+	testOneIsInt(t, "-0.000452", false)
+	testOneIsInt(t, "-15487920", true)
+	testOneIsInt(t, "-255.00000", true)
+	testOneIsInt(t, "255.00000", true)
+}
+
 // example of list of traded volumes for BTC on 20180511
 var sVolumes = []string{
 	"0.06447466",
