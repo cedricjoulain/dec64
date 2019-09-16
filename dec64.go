@@ -325,7 +325,7 @@ func Homogenize(values []Dec64) {
 		}
 		// we need to multiply mantisse by 10^exp
 		e = e - exp
-		if e == 0 {
+		if e <= 0 || e > 255 {
 			// nothing to do
 			continue
 		}
