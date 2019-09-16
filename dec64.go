@@ -325,8 +325,8 @@ func Homogenize(values []Dec64) {
 		}
 		// we need to multiply mantisse by 10^exp
 		e = e - exp
-		if e <= 0 || e > 255 {
-			// nothing to do
+		if e <= 0 || e > 18 {
+			// same or to huge difference, nothing to do
 			continue
 		}
 		old := int64(d) >> 8
