@@ -386,3 +386,9 @@ func (d *Dec64) IsInt() bool {
 		return true
 	}
 }
+
+// Multiply Dec64 by an int64
+func (d *Dec64) MultInt64(i int64) Dec64 {
+	mant := (uint64(*d) & 0xffffffffffffff00) * uint64(i)
+	return Dec64(int64(mant) | (int64(*d) & 0xff))
+}

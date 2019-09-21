@@ -359,3 +359,19 @@ func TestListRW(t *testing.T) {
 		}
 	}
 }
+
+// Dec64 mutiplied to a int huge enough to make it an int64
+func testMultInt64(t *testing.T, d Dec64, i, ref int64) {
+	d = d.MultInt64(i)
+	if ref != Int64(d) {
+		t.Errorf("%d Result is %d should be %d", i, d, ref)
+	}
+}
+
+func TestMultInt64(t *testing.T) {
+	testMultInt64(t, Dec64(-4*256), 3600, -4*3600)
+	testMultInt64(t, Dec64(2*256), 3600, 2*3600)
+	// Kabul like +2.5 hours
+	testMultInt64(t, Dec64(25*256+256-1), 3600, 9000)
+	testMultInt64(t, Dec64(-25*256+256-1), 3600, -9000)
+}
