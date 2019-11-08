@@ -88,6 +88,9 @@ func TestParse(t *testing.T) {
 	testOneDecPrecision(t, "-4.49", "-4", -1024, 0)
 	testOneDecPrecision(t, "0", "0", 0, 0)
 	testOneDecPrecision(t, "125420.000", "125000", 32003, 3)
+
+	// huge
+	testOneDec(t, "297011256.990000009537", "297011256.99000001", 7603488178944000504)
 }
 
 func testOneFloat(t *testing.T, f float64, ref int64) {
