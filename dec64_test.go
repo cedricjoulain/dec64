@@ -253,7 +253,7 @@ func TestLists(t *testing.T) {
 	for i, v := range sVolumes {
 		dVolumes[i], err = Parse(v)
 		if err != nil {
-			t.Errorf(err.Error())
+			t.Error(err)
 			return
 		}
 	}
@@ -271,7 +271,7 @@ func TestOverflow(t *testing.T) {
 	s := fmt.Sprintf("%d.458", ref)
 	d, err := Parse(s)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 		return
 	}
 	if Int64(d) != ref {
@@ -282,12 +282,12 @@ func TestOverflow(t *testing.T) {
 	values := make([]Dec64, 2)
 	values[0], err = Parse("0.000000000000001")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 		return
 	}
 	values[1], err = Parse("100000000000000")
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 		return
 	}
 	// values could be modified
@@ -341,13 +341,13 @@ func TestListRW(t *testing.T) {
 
 	err := ListToWriter(&buf, values)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(err)
 		return
 	}
 	read, err := ListFromReader(&buf)
 	if err != nil {
 		if err != io.EOF {
-			t.Errorf(err.Error())
+			t.Error(err)
 			return
 		}
 	}
