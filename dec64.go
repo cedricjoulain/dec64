@@ -269,6 +269,9 @@ func Normalize(d Dec64) Dec64 {
 		return 0
 	}
 	exp := int64(d) & 0xff
+	if exp > 127 {
+		exp -= 256
+	}
 	for mant%10 == 0 {
 		mant /= 10
 		exp++

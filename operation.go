@@ -3,6 +3,10 @@
 // it's more accurate to store some sort of decimals
 package dec64
 
+import (
+	"log"
+)
+
 // Round to nearest, presicions is 10^n
 func Round(d Dec64, n int64) Dec64 {
 	mant := int64(d) >> 8
@@ -64,7 +68,16 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 		na := Normalize(*a)
 		nb := Normalize(b)
 		ea = int64(na) & 0xff
-		eb = int64(b) & 0xff
+		if ea > 127 {
+			// negative
+			ea -= 256
+		}
+		eb = int64(nb) & 0xff
+		if eb > 127 {
+			// negative
+			eb -= 256
+		}
+		log.Println(na, nb, ea, eb)
 		if ea == eb {
 			// same exp that's simple
 			mant := (uint64(na) & mMask) + (uint64(nb) & mMask)
@@ -84,12 +97,16 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 				break
 			}
 			coefb = ncoef
-			eb++
+			eb--
 		}
 		coefa := int64(na) >> 8
 		// overflow loose precision on a
-		if (ea - eb) != 0 {
-			coefa /= expi[ea-eb]
+		if (eb - ea) != 0 {
+			if (eb - ea) > 128 {
+				//a too small compared to b return b
+				return nb
+			}
+			coefa /= expi[eb-ea]
 			ea = eb
 		}
 		ncoef = coefa + coefb

@@ -379,6 +379,27 @@ func TestMultInt64(t *testing.T) {
 	testMultInt64(t, Dec64(-25*256+256-1), 3600, -9000)
 }
 
+func TestNormalize(t *testing.T) {
+	d := Dec64(10 * 256)
+	ref := int64(1*256 + 1)
+	if ref != int64(Normalize(d)) {
+		t.Errorf("%s normalized is %d should be %d", d,
+			int64(Normalize(d)), ref)
+	}
+	d = Dec64(-10 * 256)
+	ref = -1*256 + 1
+	if ref != int64(Normalize(d)) {
+		t.Errorf("%s normalized is %d should be %d", d,
+			int64(Normalize(d)), ref)
+	}
+	d = Dec64(-10*256 + (256 - 3))
+	ref = -1*256 + (256 - 2)
+	if ref != int64(Normalize(d)) {
+		t.Errorf("%s normalized is %d should be %d", d,
+			int64(Normalize(d)), ref)
+	}
+}
+
 func TestNeg(t *testing.T) {
 	one := Dec64(1 * 256)
 	mone := Dec64(-1 * 256)
@@ -397,4 +418,56 @@ func TestNeg(t *testing.T) {
 			t.Errorf("%s should be %s", d.Neg().Neg(), d)
 		}
 	}
+}
+
+func testAdd(t *testing.T, a, b, ref Dec64) {
+	if !ref.Equal(a.Add(b)) {
+		t.Errorf("%s+%s is %s should be %s", a, b, a.Add(b), ref)
+	}
+	if !ref.Equal(a.Sub(b.Neg())) {
+		t.Errorf("%s-%s is %s should be %s", a, b.Neg(),
+			a.Sub(b.Neg()), ref)
+	}
+	if !ref.Equal(b.Add(a)) {
+		t.Errorf("%s+%s is %s should be %s", b, a, b.Add(a), ref)
+	}
+	if !ref.Equal(b.Sub(a.Neg())) {
+		t.Errorf("%s-%s is %s should be %s", b, a.Neg(),
+			b.Sub(a.Neg()), ref)
+	}
+}
+
+func TestAdd(t *testing.T) {
+	a := Dec64(1 * 256)
+	b := Dec64(-1 * 256)
+	ref := Dec64(0)
+	testAdd(t, a, b, ref)
+	// Huge and small
+	var err error
+	a, err = Parse("0.000000000000001")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	b, err = Parse("100000000000000")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	ref = b
+	testAdd(t, a, b, ref)
+
+	a = Dec64(1*256 + 1)
+	b = Dec64(-10 * 256)
+	ref = Dec64(0)
+	testAdd(t, a, b, ref)
+
+	a = Dec64(-10*256 + (256 - 3))
+	b = Dec64(1*256 + (256 - 2))
+	testAdd(t, a, b, ref)
+
+	a = Dec64(1*256 + (256 - 3))
+	b = Dec64(1*256 + 2)
+	ref = Dec64(100001*256 + (256 - 3))
+	testAdd(t, a, b, ref)
 }
