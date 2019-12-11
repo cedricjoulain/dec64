@@ -37,31 +37,86 @@ func Round(d Dec64, n int64) Dec64 {
 
 // Keep on mantisse
 const mMask = 0xffffffffffffff00
+
 // Multiply Dec64 by an int64
 func (d *Dec64) MultInt64(i int64) Dec64 {
 	mant := (uint64(*d) & mMask) * uint64(i)
 	return Dec64(int64(mant) | (int64(*d) & 0xff))
 }
 
+// Neg -> *-1
+func (a Dec64) Neg() Dec64 {
+	mant := uint64(a) & mMask
+	return Dec64((-int64(mant)) | (int64(a) & 0xff))
+}
+
 // Add
 func (a *Dec64) Add(b Dec64) Dec64 {
-	mant := (uint64(*d) & mMask) * uint64(i)
-	return Dec64(int64(mant) | (int64(*d) & 0xff))
+	ea := int64(*a) & 0xff
+	eb := int64(b) & 0xff
+	if ea == eb {
+		// same exp that's simple
+		mant := (uint64(*a) & mMask) + (uint64(b) & mMask)
+		return Dec64(int64(mant) | ea&0xff)
+	} else {
+		// different exp
+		// first normalize
+		na := Normalize(*a)
+		nb := Normalize(b)
+		ea = int64(na) & 0xff
+		eb = int64(b) & 0xff
+		if ea == eb {
+			// same exp that's simple
+			mant := (uint64(na) & mMask) + (uint64(nb) & mMask)
+			return Dec64(int64(mant) | ea&0xff)
+		}
+		if ea > eb {
+			// Switch to get ea > eb
+			na, nb = nb, na
+			ea, eb = eb, ea
+		}
+		var ncoef int64
+		coefb := int64(nb) >> 8
+		for (ea - eb) != 0 {
+			ncoef = coefb * 10
+			if (uint64(ncoef)^uint64(coefb))&0xff00000000000000 != 0 {
+				// overflow on b!
+				break
+			}
+			coefb = ncoef
+			eb++
+		}
+		coefa := int64(na) >> 8
+		// overflow loose precision on a
+		if (ea - eb) != 0 {
+			coefa /= expi[ea-eb]
+			ea = eb
+		}
+		ncoef = coefa + coefb
+		// overflow ?
+		if ncoef >= 0x0100000000000000 || ncoef <= -0x0100000000000000 {
+			ncoef /= 10
+			ea++
+		}
+		return Dec64(ncoef<<8 | ea&0xff)
+	}
 }
+
 // Sub
 func (a *Dec64) Sub(b Dec64) Dec64 {
-	mant := (uint64(*d) & mMask) * uint64(i)
-	return Dec64(int64(mant) | (int64(*d) & 0xff))
+	return a.Add(b.Neg())
 }
+
 // Multiply
 func (a *Dec64) Mult(b Dec64) Dec64 {
 	mant := (uint64(*a) & mMask) * (uint64(b) & mMask)
 	e := (int64(*a) & 0xff) + (int64(b) & 0xff)
-	return Dec64(mant | e  & 0xff)
+	return Dec64(int64(mant) | e&0xff)
 }
-// Div
-func (a *Dec64) Div(b Dec64) Dec64 {
-	mant := (uint64(*a) & mMask) * (uint64(*b) & mMask)
 
-	return Dec64(int64(mant) | (int64(*d) & 0xff))
+// TODO
+func (a *Dec64) Div(b Dec64) Dec64 {
+	mant := (uint64(*a) & mMask) * (uint64(b) & mMask)
+	e := (int64(*a) & 0xff) + (int64(b) & 0xff)
+	return Dec64(int64(mant) | (e & 0xff))
 }

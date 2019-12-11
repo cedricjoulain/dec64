@@ -229,7 +229,7 @@ func BenchmarkString(b *testing.B) {
 	for i, v := range sVBench {
 		dVolumes[i], err = Parse(v)
 		if err != nil {
-			b.Errorf(err.Error())
+			b.Error(err)
 			return
 		}
 	}
@@ -377,4 +377,24 @@ func TestMultInt64(t *testing.T) {
 	// Kabul like +2.5 hours
 	testMultInt64(t, Dec64(25*256+256-1), 3600, 9000)
 	testMultInt64(t, Dec64(-25*256+256-1), 3600, -9000)
+}
+
+func TestNeg(t *testing.T) {
+	one := Dec64(1 * 256)
+	mone := Dec64(-1 * 256)
+	// first ensure Neg isnot identity
+	if !mone.Equal(one.Neg()) {
+		t.Errorf("%s should be %s", one.Neg(), mone)
+	}
+	// check neg of neg!
+	for _, v := range sVBench {
+		d, err := Parse(v)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		if !d.Equal(d.Neg().Neg()) {
+			t.Errorf("%s should be %s", d.Neg().Neg(), d)
+		}
+	}
 }
