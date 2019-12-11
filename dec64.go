@@ -343,38 +343,6 @@ func Homogenize(values []Dec64) {
 	}
 }
 
-// Round to nearest, presicions is 10^n
-func Round(d Dec64, n int64) Dec64 {
-	mant := int64(d) >> 8
-	if mant == 0 {
-		return 0
-	}
-	e := int64(d) & 0xff
-	if e > 127 {
-		// negative
-		e -= 256
-	}
-	// Normalize
-	for mant%10 == 0 {
-		mant /= 10
-		e++
-	}
-	for e < n {
-		if (n-e) > 1 || (mant%10 < 5 && mant%10 > -5) {
-			mant /= 10
-		} else {
-			mant /= 10
-			if mant > 0 {
-				mant++
-			} else {
-				mant--
-			}
-		}
-		e++
-	}
-	return Dec64(mant<<8 | (e & 0xff))
-}
-
 // Check it's an integer with no decimal parts
 func (d *Dec64) IsInt() bool {
 	// Normalize to ensure exponant is fully significativ
@@ -385,10 +353,4 @@ func (d *Dec64) IsInt() bool {
 	} else {
 		return true
 	}
-}
-
-// Multiply Dec64 by an int64
-func (d *Dec64) MultInt64(i int64) Dec64 {
-	mant := (uint64(*d) & 0xffffffffffffff00) * uint64(i)
-	return Dec64(int64(mant) | (int64(*d) & 0xff))
 }
