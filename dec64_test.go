@@ -437,7 +437,7 @@ func testAdd(t *testing.T, a, b, ref Dec64) {
 	}
 }
 
-func TestAdd(t *testing.T) {
+func hideTestAdd(t *testing.T) {
 	a := Dec64(1 * 256)
 	b := Dec64(-1 * 256)
 	ref := Dec64(0)
@@ -456,6 +456,10 @@ func TestAdd(t *testing.T) {
 	}
 	ref = b
 	testAdd(t, a, b, ref)
+	a = Dec64(9999999999999999*256 + 127)
+	b = Dec64(1*256 + (256 - 128))
+	ref = a
+	testAdd(t, a, b, ref)
 
 	a = Dec64(1*256 + 1)
 	b = Dec64(-10 * 256)
@@ -469,5 +473,20 @@ func TestAdd(t *testing.T) {
 	a = Dec64(1*256 + (256 - 3))
 	b = Dec64(1*256 + 2)
 	ref = Dec64(100001*256 + (256 - 3))
+	testAdd(t, a, b, ref)
+
+	// a max precisiion
+	a = Dec64((2<<(6*8+6) - 1) * 256)
+	b = Dec64(1*256 + (256 - 128))
+	ref = a
+	testAdd(t, a, b, ref)
+}
+
+func testBug(t *testing.T) {
+	var a, b, ref Dec64
+	// overflow
+	a = Dec64((2 << (6*8 + 5)) * 256)
+	b = Dec64((2 << (6*8 + 5)) * 256)
+	ref = a
 	testAdd(t, a, b, ref)
 }

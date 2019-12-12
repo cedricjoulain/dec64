@@ -100,9 +100,10 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 			eb--
 		}
 		coefa := int64(na) >> 8
+		log.Println(coefa, coefb, ea, eb)
 		// overflow loose precision on a
 		if (eb - ea) != 0 {
-			if (eb - ea) > 128 {
+			if (eb - ea) >= 128 {
 				//a too small compared to b return b
 				return nb
 			}
@@ -132,8 +133,8 @@ func (a *Dec64) Mult(b Dec64) Dec64 {
 }
 
 // TODO
-func (a *Dec64) Div(b Dec64) Dec64 {
-	mant := (uint64(*a) & mMask) * (uint64(b) & mMask)
-	e := (int64(*a) & 0xff) + (int64(b) & 0xff)
-	return Dec64(int64(mant) | (e & 0xff))
+func (a *Dec64) Div(b Dec64) (res Dec64) {
+	// Trick...
+	res, _ = FromFloat64(Float64(*a) / Float64(b))
+	return
 }
