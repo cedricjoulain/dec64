@@ -7,6 +7,17 @@ import (
 	"log"
 )
 
+// returns 1 if a > 0, -1 if a < 0, 0 if a == 0
+func Signum(d Dec64) int {
+	if (uint64(d) & mMask) == 0 {
+		return 0
+	}
+	if int64(d) < 0 {
+		return -1
+	}
+	return 1
+}
+
 // Round to nearest, presicions is 10^n
 func Round(d Dec64, n int64) Dec64 {
 	mant := int64(d) >> 8
