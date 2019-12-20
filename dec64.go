@@ -17,6 +17,9 @@ type ParseError error
 const Empty = Dec64(0x0000000000000001)
 const NotAvailable = Dec64(0x00000000000000ff)
 
+// For comparaison with Float64
+const Epsilon = 3e-14
+
 // return a dec64 form string
 func Parse(s string) (res Dec64, err error) {
 	res = Empty
@@ -219,12 +222,10 @@ func init() {
 		expi[i] = int64(f)
 		f *= 10
 	}
-	f = .1
 	in := int64(10)
 	for i := 255; i > 128; i-- {
 		expf[i] = 1.0 / float64(in)
 		expi[i] = in
-		f /= 10
 		in *= 10
 	}
 }

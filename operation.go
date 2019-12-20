@@ -3,10 +3,6 @@
 // it's more accurate to store some sort of decimals
 package dec64
 
-import (
-	"log"
-)
-
 // returns 1 if a > 0, -1 if a < 0, 0 if a == 0
 func Signum(d Dec64) int {
 	if (uint64(d) & mMask) == 0 {
@@ -88,7 +84,6 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 			// negative
 			eb -= 256
 		}
-		log.Println(na, nb, ea, eb)
 		if ea == eb {
 			// same exp that's simple
 			mant := (uint64(na) & mMask) + (uint64(nb) & mMask)
@@ -111,7 +106,6 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 			eb--
 		}
 		coefa := int64(na) >> 8
-		log.Println(coefa, coefb, ea, eb)
 		// overflow loose precision on a
 		if (eb - ea) != 0 {
 			if (eb - ea) >= 128 {

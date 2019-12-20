@@ -15,13 +15,13 @@ func testOneDec(t *testing.T, s, refs string, ref int64) {
 		t.Error(err)
 	}
 	if ref != int64(d) {
-		t.Errorf("%s Result is %d should be %d", s, d, ref)
+		t.Errorf("%s Result is %d (%d*256+%d) should be %d", s, d, d/256, d%256, ref)
 	}
 	if refs != d.String() {
 		t.Errorf("String is %s should be %s", d.String(), refs)
 	}
 	f, _ := strconv.ParseFloat(s, 64)
-	if math.Abs(f-Float64(d)) > 0.000000000000001 {
+	if math.Abs(f-Float64(d)) > Epsilon {
 		t.Errorf("Float64 is %g should be %g", Float64(d), f)
 	}
 }
@@ -91,6 +91,8 @@ func TestParse(t *testing.T) {
 
 	// huge
 	testOneDec(t, "297011256.990000009537", "297011256.99000001", 7603488178944000504)
+	// rounding issue
+	testOneDec(t, "136.33999999999997", "136.33999999999997", 13633999999999997*256+242)
 }
 
 func testOneFloat(t *testing.T, f float64, ref int64) {
@@ -99,7 +101,7 @@ func testOneFloat(t *testing.T, f float64, ref int64) {
 		t.Error(err)
 	}
 	if ref != int64(d) {
-		t.Errorf("%g Result is %d should be %d", f, d, ref)
+		t.Errorf("%g Result is %d (%d*256+%d) should be %d", f, d, d/256, d%256, ref)
 	}
 	// Less accurante than from string
 	if math.Abs(f-Float64(d)) > 0.000000001 {
@@ -124,7 +126,7 @@ func testOneInt64(t *testing.T, i, ref int64) {
 		t.Error(err)
 	}
 	if ref != int64(d) {
-		t.Errorf("%d Result is %d should be %d", i, d, ref)
+		t.Errorf("%d Result is %d (%d*256+%d) should be %d", i, d, d/256, d%256, ref)
 	}
 	if Int64(d) != i {
 		t.Errorf("Int64 is %d should be %d", Int64(d), i)
