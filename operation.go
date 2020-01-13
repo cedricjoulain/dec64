@@ -117,7 +117,7 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 		}
 		ncoef = coefa + coefb
 		// overflow ?
-		if ncoef >= 0x0100000000000000 || ncoef <= -0x0100000000000000 {
+		if ncoef >= 0x0080000000000000 || ncoef <= -0x0080000000000000 {
 			ncoef /= 10
 			ea++
 		}

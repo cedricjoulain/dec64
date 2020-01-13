@@ -424,7 +424,7 @@ func TestNeg(t *testing.T) {
 
 func testAdd(t *testing.T, a, b, ref Dec64) {
 	if !ref.Equal(a.Add(b)) {
-		t.Errorf("%s+%s is %s should be %s", a, b, a.Add(b), ref)
+		t.Errorf("%s+%s is %s(%d) should be %s", a, b, a.Add(b), int64(a.Add(b)), ref)
 	}
 	if !ref.Equal(a.Sub(b.Neg())) {
 		t.Errorf("%s-%s is %s should be %s", a, b.Neg(),
@@ -439,7 +439,7 @@ func testAdd(t *testing.T, a, b, ref Dec64) {
 	}
 }
 
-func hideTestAdd(t *testing.T) {
+func TestAdd(t *testing.T) {
 	a := Dec64(1 * 256)
 	b := Dec64(-1 * 256)
 	ref := Dec64(0)
@@ -481,6 +481,12 @@ func hideTestAdd(t *testing.T) {
 	a = Dec64((2<<(6*8+6) - 1) * 256)
 	b = Dec64(1*256 + (256 - 128))
 	ref = a
+	testAdd(t, a, b, ref)
+	// wrong 6629.509425000001 > 64842
+	// -6629.509425000001+64842 is 58212.49057499999
+	a = Dec64(-6629509425000001*256 + 244)
+	b = Dec64(64842 * 256)
+	ref = Dec64(1490239758719999989)
 	testAdd(t, a, b, ref)
 }
 
