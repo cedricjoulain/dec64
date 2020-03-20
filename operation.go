@@ -5,7 +5,7 @@ package dec64
 
 // returns 1 if a > 0, -1 if a < 0, 0 if a == 0
 func Signum(d Dec64) int {
-	if (uint64(d) & mMask) == 0 {
+	if (uint64(d) & MMask) == 0 {
 		return 0
 	}
 	if int64(d) < 0 {
@@ -47,32 +47,32 @@ func Round(d Dec64, n int64) Dec64 {
 }
 
 // Keep on mantisse
-const mMask = 0xffffffffffffff00
+const MMask = 0xffffffffffffff00
 
 // Multiply Dec64 by an int64
 func (d *Dec64) MultInt64(i int64) Dec64 {
-	mant := (uint64(*d) & mMask) * uint64(i)
+	mant := (uint64(*d) & MMask) * uint64(i)
 	return Dec64(int64(mant) | (int64(*d) & 0xff))
 }
 
 // Neg -> *-1
 func (a Dec64) Neg() Dec64 {
-	mant := uint64(a) & mMask
+	mant := uint64(a) & MMask
 	return Dec64((-int64(mant)) | (int64(a) & 0xff))
 }
 
 // Add
-func (a *Dec64) Add(b Dec64) Dec64 {
-	ea := int64(*a) & 0xff
+func (a Dec64) Add(b Dec64) Dec64 {
+	ea := int64(a) & 0xff
 	eb := int64(b) & 0xff
 	if ea == eb {
 		// same exp that's simple
-		mant := (uint64(*a) & mMask) + (uint64(b) & mMask)
+		mant := (uint64(a) & MMask) + (uint64(b) & MMask)
 		return Dec64(int64(mant) | ea&0xff)
 	} else {
 		// different exp
 		// first normalize
-		na := Normalize(*a)
+		na := Normalize(a)
 		nb := Normalize(b)
 		ea = int64(na) & 0xff
 		if ea > 127 {
@@ -86,7 +86,7 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 		}
 		if ea == eb {
 			// same exp that's simple
-			mant := (uint64(na) & mMask) + (uint64(nb) & mMask)
+			mant := (uint64(na) & MMask) + (uint64(nb) & MMask)
 			return Dec64(int64(mant) | ea&0xff)
 		}
 		if ea > eb {
@@ -126,20 +126,20 @@ func (a *Dec64) Add(b Dec64) Dec64 {
 }
 
 // Sub
-func (a *Dec64) Sub(b Dec64) Dec64 {
+func (a Dec64) Sub(b Dec64) Dec64 {
 	return a.Add(b.Neg())
 }
 
 // Multiply
-func (a *Dec64) Mult(b Dec64) Dec64 {
-	mant := (uint64(*a) & mMask) * (uint64(b) & mMask)
-	e := (int64(*a) & 0xff) + (int64(b) & 0xff)
+func (a Dec64) Mult(b Dec64) Dec64 {
+	mant := (uint64(a) & MMask) * (uint64(b) & MMask)
+	e := (int64(a) & 0xff) + (int64(b) & 0xff)
 	return Dec64(int64(mant) | e&0xff)
 }
 
 // TODO
-func (a *Dec64) Div(b Dec64) (res Dec64) {
+func (a Dec64) Div(b Dec64) (res Dec64) {
 	// Trick...
-	res, _ = FromFloat64(Float64(*a) / Float64(b))
+	res, _ = FromFloat64(Float64(a) / Float64(b))
 	return
 }

@@ -348,9 +348,9 @@ func Homogenize(values []Dec64) {
 }
 
 // Check it's an integer with no decimal parts
-func (d *Dec64) IsInt() bool {
+func (d Dec64) IsInt() bool {
 	// Normalize to ensure exponant is fully significativ
-	e := int64(Normalize(*d)) & 0xff
+	e := int64(Normalize(d)) & 0xff
 	if e > 127 {
 		// negative, we have a decimal part
 		return false
