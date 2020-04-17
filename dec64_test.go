@@ -20,7 +20,7 @@ func testOneDec(t *testing.T, s, refs string, ref int64) {
 	if refs != d.String() {
 		t.Errorf("String is %s should be %s", d.String(), refs)
 	}
-	f, _ := strconv.ParseFloat(s, 64)
+	f, _ := strconv.ParseFloat(refs, 64)
 	if math.Abs(f-Float64(d)) > Epsilon {
 		t.Errorf("Float64 is %g should be %g", Float64(d), f)
 	}
@@ -44,6 +44,9 @@ func TestParse(t *testing.T) {
 	testOneDec(t, "+1", "1", 256)
 	testOneDec(t, "1", "1", 256)
 	testOneDec(t, "-1", "-1", -256)
+	testOneDec(t, " +1", "1", 256)
+	testOneDec(t, " 1", "1", 256)
+	testOneDec(t, "  -1", "-1", -256)
 	testOneDec(t, "345", "345", 345*256)
 	testOneDec(t, ".6789", "0.6789", 1738236)
 	testOneDec(t, "2.05", "2.05", 52734)

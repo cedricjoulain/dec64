@@ -28,13 +28,17 @@ func Parse(s string) (res Dec64, err error) {
 	}
 	start := 0
 	neg := false
-	if s[0] == '+' {
+	for s[start] == ' ' {
+		// trim starting space
+		start++
+	}
+	if s[start] == '+' {
 		// just forget
-		start = 1
+		start += 1
 	} else {
-		if s[0] == '-' {
+		if s[start] == '-' {
 			neg = true
-			start = 1
+			start += 1
 		}
 	}
 	dot := false
