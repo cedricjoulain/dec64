@@ -42,7 +42,10 @@ func Parse(s string) (res Dec64, err error) {
 		}
 	}
 	dot := false
-	var exp, ncoef, coef, addExp, factor int64
+	var (
+		exp, ncoef, coef, addExp, factor int64
+		overflow                         bool
+	)
 	factor = 1
 	expMode := false
 	i := start
@@ -55,17 +58,24 @@ func Parse(s string) (res Dec64, err error) {
 			if coef == 0 && !dot {
 				continue
 			}
-			factor *= 10
-			if dot {
-				exp--
+			if neg {
+				overflow = (coef * factor * 10) < (-1 * 0x7fffffffffffff)
+			} else {
+				overflow = (coef * factor * 10) > 0x7fffffffffffff
 			}
-			addExp += 1
-			continue
+			if !overflow {
+				factor *= 10
+				if dot {
+					exp--
+				}
+				addExp += 1
+				continue
+			}
 		}
 		coef *= factor
 		factor = 1
 		addExp = 0
-		if s[i] >= '1' && s[i] <= '9' {
+		if s[i] >= '0' && s[i] <= '9' {
 			if neg {
 				ncoef = 10*coef - int64(s[i]-'0')
 				// check for overload

@@ -52,7 +52,7 @@ func TestParse(t *testing.T) {
 	testOneDec(t, "2.05", "2.05", 52734)
 	testOneDec(t, "300201", "300201", 76851456)
 	testOneDec(t, "6151000", "6151000", 6151*256+3)
-	testOneDec(t, "100", "100", 258)
+	testOneDec(t, "100", "100", 1*256+2)
 	testOneDec(t, ".09", "0.09", 9*256+254)
 	testOneDec(t, ".007", "0.007", 7*256+256-3)
 	testOneDec(t, "0", "0", 0)
@@ -78,6 +78,10 @@ func TestParse(t *testing.T) {
 		-12345678901234568*256+1)
 	testOneDec(t, "-1234567890123456780", "-1234567890123456800",
 		-12345678901234568*256+2)
+	testOneDec(t, "19831697.120000001043", "19831697.120000001", 19831697120000001*256+247)
+	testOneDec(t, "-19831697.120000001043", "-19831697.120000001", -19831697120000001*256+247)
+	testOneDec(t, "26414364.620000001043", "26414364.620000001", 26414364620000001*256+247)
+	testOneDec(t, "-26414364.620000001043", "-26414364.620000001", -26414364620000001*256+247)
 	testOneDecPrecision(t, "79.068001", "79.068", 20241661, -3)
 	testOneDecPrecision(t, "-79.068001", "-79.068", -20241155, -3)
 	testOneDecPrecision(t, "79.084999", "79.085", 20246013, -3)
@@ -324,18 +328,23 @@ func TestBorders(t *testing.T) {
 		toBig += "0"
 		toSmall += "0"
 	}
+	for i := 112; i < 128; i++ {
+		toBig += "0"
+	}
 	toSmall += "1"
 	testParseError(t, toBig, fmt.Sprintf("%s is too big for dec64", toBig))
 	testParseError(t, toSmall, fmt.Sprintf("%s is too small for dec64", toSmall))
 }
 
 func testParseError(t *testing.T, value, ref string) {
-	_, err := Parse(value)
+	d, err := Parse(value)
 	if err == nil {
+		t.Errorf("Result is %d (%d*256+%d)", d, d/256, d%256)
 		t.Errorf("Parsing %s should be in error", value)
 		return
 	}
 	if err.Error() != ref {
+		t.Errorf("Result is %d (%d*256+%d)", d, d/256, d%256)
 		t.Errorf("Parsing %s error is \n%s should be \n%s", value, err.Error(), ref)
 	}
 }
