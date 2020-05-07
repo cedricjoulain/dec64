@@ -126,6 +126,15 @@ func Parse(s string) (res Dec64, err error) {
 		err = ParseError(fmt.Errorf("Unable to parse dec64 from %s", s))
 		return
 	}
+	// if early stop look if some exponent
+	if !expMode {
+		for ; i < len(s); i++ {
+			if s[i] == 'E' || s[i] == 'e' {
+				expMode = true
+				break
+			}
+		}
+	}
 	// was written like 1.5E-7
 	if expMode {
 		df := int64(1)
