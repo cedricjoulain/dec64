@@ -47,7 +47,10 @@ func Round(d Dec64, n int64) Dec64 {
 }
 
 // Keep on mantisse
-const MMask = 0xffffffffffffff00
+const (
+	MMask     = 0xffffffffffffff00
+	MOverflow = 0x0080000000000000
+)
 
 // Multiply Dec64 by an int64
 func (d *Dec64) MultInt64(i int64) Dec64 {
@@ -66,9 +69,14 @@ func (a Dec64) Add(b Dec64) Dec64 {
 	ea := int64(a) & 0xff
 	eb := int64(b) & 0xff
 	if ea == eb {
-		// same exp that's simple
-		mant := (uint64(a) & MMask) + (uint64(b) & MMask)
-		return Dec64(int64(mant) | ea&0xff)
+		// same exp, take care of overflow
+		coef := int64(a)>>8 + int64(b)>>8
+		// overflow ?
+		if coef >= MOverflow || coef <= -MOverflow {
+			coef /= 10
+			ea++
+		}
+		return Dec64(coef<<8 | ea&0xff)
 	} else {
 		// different exp
 		// first normalize
@@ -85,9 +93,14 @@ func (a Dec64) Add(b Dec64) Dec64 {
 			eb -= 256
 		}
 		if ea == eb {
-			// same exp that's simple
-			mant := (uint64(na) & MMask) + (uint64(nb) & MMask)
-			return Dec64(int64(mant) | ea&0xff)
+			// same exp, take care of overflow
+			coef := int64(na)>>8 + int64(nb)>>8
+			// overflow ?
+			if coef >= MOverflow || coef <= -MOverflow {
+				coef /= 10
+				ea++
+			}
+			return Dec64(coef<<8 | ea&0xff)
 		}
 		if ea > eb {
 			// Switch to get ea > eb
@@ -117,7 +130,7 @@ func (a Dec64) Add(b Dec64) Dec64 {
 		}
 		ncoef = coefa + coefb
 		// overflow ?
-		if ncoef >= 0x0080000000000000 || ncoef <= -0x0080000000000000 {
+		if ncoef >= MOverflow || ncoef <= -MOverflow {
 			ncoef /= 10
 			ea++
 		}

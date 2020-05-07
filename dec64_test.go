@@ -510,6 +510,12 @@ func TestAdd(t *testing.T) {
 	b = Dec64(64842 * 256)
 	ref = Dec64(1490239758719999989)
 	testAdd(t, a, b, ref)
+
+	// wrong
+	a, _ = Parse("0.026000000000000002")
+	b, _ = Parse("0.034999999999999996")
+	ref, _ = Parse("0.06099999999999999")
+	testAdd(t, a, b, ref)
 }
 
 func testBug(t *testing.T) {
