@@ -1,4 +1,4 @@
-// DEC64 int as described in http://dec64.com/
+// Package dec64 int as described in http://dec64.com/
 // As exchanges always publish decimal values
 // it's more accurate to store some sort of decimals
 package dec64
@@ -11,16 +11,22 @@ import (
 	"strings"
 )
 
+// Dec64 decimal number representation.
 type Dec64 int64
+
+// ParseError input has a wron format.
 type ParseError error
 
+// Empty no value encoding.
 const Empty = Dec64(0x0000000000000001)
+
+// NotAvailable missing encoding.
 const NotAvailable = Dec64(0x00000000000000ff)
 
-// For comparaison with Float64
-const Epsilon = 3e-14
+// Epsilon tolerance for comparaison with Float64.
+const Epsilon = 3e-13
 
-// return a dec64 form string
+// Parse returns a dec64 form string.
 func Parse(s string) (res Dec64, err error) {
 	res = Empty
 	if len(s) == 0 {
@@ -34,11 +40,11 @@ func Parse(s string) (res Dec64, err error) {
 	}
 	if s[start] == '+' {
 		// just forget
-		start += 1
+		start++
 	} else {
 		if s[start] == '-' {
 			neg = true
-			start += 1
+			start++
 		}
 	}
 	dot := false
@@ -68,7 +74,7 @@ func Parse(s string) (res Dec64, err error) {
 				if dot {
 					exp--
 				}
-				addExp += 1
+				addExp++
 				continue
 			}
 		}
@@ -189,7 +195,7 @@ func (d Dec64) String() string {
 		bb.WriteByte(uint8(coef%10) + '0')
 		dotLast = false
 		if exp < 0 {
-			exp += 1
+			exp++
 			if exp == 0 {
 				bb.WriteByte('.')
 				dotLast = true
@@ -226,9 +232,8 @@ func (d Dec64) String() string {
 			z.WriteByte('0')
 		}
 		return z.String()
-	} else {
-		return string(chr)
 	}
+	return string(chr)
 }
 
 var (
@@ -253,21 +258,21 @@ func init() {
 	}
 }
 
-// Convert Dec64 to float64 using precomputed exponent
+// Float64 converts Dec64 to float64 using precomputed exponent.
 func Float64(d Dec64) (f float64) {
 	if d&0xff > 127 {
 		return float64(int64(d)>>8) / expf[256-d&0xff]
-	} else {
-		return float64(int64(d)>>8) * expf[d&0xff]
 	}
+	return float64(int64(d)>>8) * expf[d&0xff]
 }
 
+// FromFloat64 converts float64 to Dec64.
 func FromFloat64(f float64) (Dec64, error) {
 	// TODO optimize !
 	return Parse(strconv.FormatFloat(f, 'g', -1, 64))
 }
 
-// Convert int64 to Dec64
+// FromInt64 converts int64 to Dec64
 // i must be <= 0x00FFFFFF
 // which makes around 281 474 976 711 000
 func FromInt64(i int64) (Dec64, error) {
@@ -275,15 +280,14 @@ func FromInt64(i int64) (Dec64, error) {
 	return Dec64(i * 256), nil
 }
 
-// Convert Dec64 to "normal" int64 keeping sign
+// Int64 converts Dec64 to "normal" int64 keeping sign
 func Int64(d Dec64) int64 {
 	mant := int64(d) >> 8
 	exp := int64(d) & 0xff
 	if exp > 127 {
 		return mant / expi[exp]
-	} else {
-		return mant * expi[exp]
 	}
+	return mant * expi[exp]
 }
 
 // Normalize Dec64 -> mantisse % 10 != 0
@@ -303,24 +307,24 @@ func Normalize(d Dec64) Dec64 {
 	return Dec64(mant<<8 | (exp & 0xff))
 }
 
-// Compare 2 dec64, empty and not available are every thing
-func (a *Dec64) Equal(b Dec64) bool {
-	if *a == Empty || *a == NotAvailable {
+// Equal compares 2 dec64, empty and not available are every thing.
+func (d *Dec64) Equal(b Dec64) bool {
+	if *d == Empty || *d == NotAvailable {
 		return true
 	}
 	if b == Empty || b == NotAvailable {
 		return true
 	}
-	if *a != b {
+	if *d != b {
 		// Try to normalize to ensure they are different
-		if Normalize(*a) != Normalize(b) {
+		if Normalize(*d) != Normalize(b) {
 			return false
 		}
 	}
 	return true
 }
 
-// Ensure all exponents will be the same or closer as possible
+// Homogenize ensures all exponents will be the same or closer as possible.
 // Dec64 will probably no longer be normalized
 func Homogenize(values []Dec64) {
 	// First find smaller exponent
@@ -370,14 +374,13 @@ func Homogenize(values []Dec64) {
 	}
 }
 
-// Check it's an integer with no decimal parts
+// IsInt checks that d is an integer with no decimal parts.
 func (d Dec64) IsInt() bool {
 	// Normalize to ensure exponant is fully significativ
 	e := int64(Normalize(d)) & 0xff
 	if e > 127 {
 		// negative, we have a decimal part
 		return false
-	} else {
-		return true
 	}
+	return true
 }

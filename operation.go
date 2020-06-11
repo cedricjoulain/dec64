@@ -1,9 +1,9 @@
-// DEC64 int as described in http://dec64.com/
+// Package dec64 int as described in http://dec64.com/
 // As exchanges always publish decimal values
 // it's more accurate to store some sort of decimals
 package dec64
 
-// returns 1 if a > 0, -1 if a < 0, 0 if a == 0
+// Signum returns 1 if a > 0, -1 if a < 0, 0 if a == 0
 func Signum(d Dec64) int {
 	if (uint64(d) & MMask) == 0 {
 		return 0
@@ -14,7 +14,7 @@ func Signum(d Dec64) int {
 	return 1
 }
 
-// Round to nearest, presicions is 10^n
+// Round rounds to nearest, presicions is 10^n.
 func Round(d Dec64, n int64) Dec64 {
 	mant := int64(d) >> 8
 	if mant == 0 {
@@ -52,107 +52,106 @@ const (
 	MOverflow = 0x0080000000000000
 )
 
-// Multiply Dec64 by an int64
+// MultInt64 multiplies Dec64 by an int64.
 func (d *Dec64) MultInt64(i int64) Dec64 {
 	mant := (uint64(*d) & MMask) * uint64(i)
 	return Dec64(int64(mant) | (int64(*d) & 0xff))
 }
 
 // Neg -> *-1
-func (a Dec64) Neg() Dec64 {
-	mant := uint64(a) & MMask
-	return Dec64((-int64(mant)) | (int64(a) & 0xff))
+func (d Dec64) Neg() Dec64 {
+	mant := uint64(d) & MMask
+	return Dec64((-int64(mant)) | (int64(d) & 0xff))
 }
 
-// Add
-func (a Dec64) Add(b Dec64) Dec64 {
-	ea := int64(a) & 0xff
+// Add adds two dec64.
+func (d Dec64) Add(b Dec64) Dec64 {
+	ea := int64(d) & 0xff
 	eb := int64(b) & 0xff
 	if ea == eb {
 		// same exp, take care of overflow
-		coef := int64(a)>>8 + int64(b)>>8
+		coef := int64(d)>>8 + int64(b)>>8
 		// overflow ?
 		if coef >= MOverflow || coef <= -MOverflow {
 			coef /= 10
 			ea++
 		}
 		return Dec64(coef<<8 | ea&0xff)
-	} else {
-		// different exp
-		// first normalize
-		na := Normalize(a)
-		nb := Normalize(b)
-		ea = int64(na) & 0xff
-		if ea > 127 {
-			// negative
-			ea -= 256
-		}
-		eb = int64(nb) & 0xff
-		if eb > 127 {
-			// negative
-			eb -= 256
-		}
-		if ea == eb {
-			// same exp, take care of overflow
-			coef := int64(na)>>8 + int64(nb)>>8
-			// overflow ?
-			if coef >= MOverflow || coef <= -MOverflow {
-				coef /= 10
-				ea++
-			}
-			return Dec64(coef<<8 | ea&0xff)
-		}
-		if ea > eb {
-			// Switch to get ea > eb
-			na, nb = nb, na
-			ea, eb = eb, ea
-		}
-		var ncoef int64
-		coefb := int64(nb) >> 8
-		for (ea - eb) != 0 {
-			ncoef = coefb * 10
-			if (uint64(ncoef)^uint64(coefb))&0xff00000000000000 != 0 {
-				// overflow on b!
-				break
-			}
-			coefb = ncoef
-			eb--
-		}
-		coefa := int64(na) >> 8
-		// overflow loose precision on a
-		if (eb - ea) != 0 {
-			if (eb - ea) >= 128 {
-				//a too small compared to b return b
-				return nb
-			}
-			coefa /= expi[eb-ea]
-			ea = eb
-		}
-		ncoef = coefa + coefb
+	}
+	// different exp
+	// first normalize
+	na := Normalize(d)
+	nb := Normalize(b)
+	ea = int64(na) & 0xff
+	if ea > 127 {
+		// negative
+		ea -= 256
+	}
+	eb = int64(nb) & 0xff
+	if eb > 127 {
+		// negative
+		eb -= 256
+	}
+	if ea == eb {
+		// same exp, take care of overflow
+		coef := int64(na)>>8 + int64(nb)>>8
 		// overflow ?
-		if ncoef >= MOverflow || ncoef <= -MOverflow {
-			ncoef /= 10
+		if coef >= MOverflow || coef <= -MOverflow {
+			coef /= 10
 			ea++
 		}
-		return Dec64(ncoef<<8 | ea&0xff)
+		return Dec64(coef<<8 | ea&0xff)
 	}
+	if ea > eb {
+		// Switch to get ea > eb
+		na, nb = nb, na
+		ea, eb = eb, ea
+	}
+	var ncoef int64
+	coefb := int64(nb) >> 8
+	for (ea - eb) != 0 {
+		ncoef = coefb * 10
+		if (uint64(ncoef)^uint64(coefb))&0xff00000000000000 != 0 {
+			// overflow on b!
+			break
+		}
+		coefb = ncoef
+		eb--
+	}
+	coefa := int64(na) >> 8
+	// overflow loose precision on a
+	if (eb - ea) != 0 {
+		if (eb - ea) >= 128 {
+			//a too small compared to b return b
+			return nb
+		}
+		coefa /= expi[eb-ea]
+		ea = eb
+	}
+	ncoef = coefa + coefb
+	// overflow ?
+	if ncoef >= MOverflow || ncoef <= -MOverflow {
+		ncoef /= 10
+		ea++
+	}
+	return Dec64(ncoef<<8 | ea&0xff)
 }
 
-// Sub
-func (a Dec64) Sub(b Dec64) Dec64 {
-	return a.Add(b.Neg())
+// Sub substracts two dec64.
+func (d Dec64) Sub(b Dec64) Dec64 {
+	return d.Add(b.Neg())
 }
 
-// Multiply
-func (a Dec64) Mult(b Dec64) Dec64 {
-	mant := (uint64(a) & MMask) * (uint64(b) & MMask)
-	e := (int64(a) & 0xff) + (int64(b) & 0xff)
+// Mult multiplies two dec64.
+func (d Dec64) Mult(b Dec64) Dec64 {
+	mant := (uint64(d) & MMask) * (uint64(b) & MMask)
+	e := (int64(d) & 0xff) + (int64(b) & 0xff)
 	return Dec64(int64(mant) | e&0xff)
 }
 
-// TODO
-func (a Dec64) Div(b Dec64) (res Dec64) {
+// Div TODO implement with dec64.
+func (d Dec64) Div(b Dec64) (res Dec64) {
 	// Trick...
-	res, _ = FromFloat64(Float64(a) / Float64(b))
+	res, _ = FromFloat64(Float64(d) / Float64(b))
 	return
 }

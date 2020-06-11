@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-// return list of dec64 from reader
+// ListFromReader returns list of dec64 from reader
 func ListFromReader(r io.Reader) (values []Dec64, err error) {
 	// reading buffer
 	// size as a Dec64 aka int64
@@ -23,7 +23,7 @@ func ListFromReader(r io.Reader) (values []Dec64, err error) {
 	}
 }
 
-// send list of dec64 to writer
+// ListToWriter sends list of dec64 to writer
 func ListToWriter(w io.Writer, values []Dec64) (err error) {
 	// writing buffer
 	// size as a Dec64 aka int64
