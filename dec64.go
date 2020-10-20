@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -244,11 +245,10 @@ var (
 func init() {
 	expf = make([]float64, 256)
 	expi = make([]int64, 256)
-	f := 1.0
 	for i := 0; i < 128; i++ {
+		f := math.Pow10(i)
 		expf[i] = f
 		expi[i] = int64(f)
-		f *= 10
 	}
 	in := int64(10)
 	for i := 255; i > 128; i-- {
