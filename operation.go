@@ -125,7 +125,7 @@ func (d Dec64) Add(b Dec64) Dec64 {
 			//a too small compared to b return b
 			return nb
 		}
-		coefa /= expi[eb-ea]
+		coefa /= Expi[eb-ea]
 		ea = eb
 	}
 	ncoef = coefa + coefb

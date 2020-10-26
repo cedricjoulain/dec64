@@ -238,22 +238,22 @@ func (d Dec64) String() string {
 }
 
 var (
-	expf []float64
-	expi []int64
+	Expf []float64
+	Expi []int64
 )
 
 func init() {
-	expf = make([]float64, 256)
-	expi = make([]int64, 256)
+	Expf = make([]float64, 256)
+	Expi = make([]int64, 256)
 	for i := 0; i < 128; i++ {
 		f := math.Pow10(i)
-		expf[i] = f
-		expi[i] = int64(f)
+		Expf[i] = f
+		Expi[i] = int64(f)
 	}
 	in := int64(10)
 	for i := 255; i > 128; i-- {
-		expf[i] = 1.0 / float64(in)
-		expi[i] = in
+		Expf[i] = 1.0 / float64(in)
+		Expi[i] = in
 		in *= 10
 	}
 }
@@ -261,9 +261,9 @@ func init() {
 // Float64 converts Dec64 to float64 using precomputed exponent.
 func Float64(d Dec64) (f float64) {
 	if d&0xff > 127 {
-		return float64(int64(d)>>8) / expf[256-d&0xff]
+		return float64(int64(d)>>8) / Expf[256-d&0xff]
 	}
-	return float64(int64(d)>>8) * expf[d&0xff]
+	return float64(int64(d)>>8) * Expf[d&0xff]
 }
 
 // FromFloat64 converts float64 to Dec64.
@@ -285,9 +285,9 @@ func Int64(d Dec64) int64 {
 	mant := int64(d) >> 8
 	exp := int64(d) & 0xff
 	if exp > 127 {
-		return mant / expi[exp]
+		return mant / Expi[exp]
 	}
-	return mant * expi[exp]
+	return mant * Expi[exp]
 }
 
 // Normalize Dec64 -> mantisse % 10 != 0
@@ -361,9 +361,9 @@ func Homogenize(values []Dec64) {
 			continue
 		}
 		old := int64(d) >> 8
-		mant := (old * expi[e]) & 0xffffffffffffff
+		mant := (old * Expi[e]) & 0xffffffffffffff
 		// simple overflow check TODO optimize?
-		if mant/expi[e] != old {
+		if mant/Expi[e] != old {
 			// do nothing
 			continue
 		}
