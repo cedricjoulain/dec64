@@ -20,6 +20,13 @@ func testOneDec(t *testing.T, s, refs string, ref int64) {
 	if refs != d.String() {
 		t.Errorf("String is %s should be %s", d.String(), refs)
 	}
+	json, err := d.MarshalJSON()
+	if err != nil {
+		t.Error(err)
+	}
+	if refs != string(json) {
+		t.Errorf("JSON is %s should be %s", string(json), refs)
+	}
 	f, _ := strconv.ParseFloat(refs, 64)
 	if math.Abs(f-Float64(d)) > Epsilon {
 		t.Errorf("Float64 is %g should be %g", Float64(d), f)
