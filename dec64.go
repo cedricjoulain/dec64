@@ -242,8 +242,16 @@ func (d *Dec64) MarshalJSON() ([]byte, error) {
 	return []byte(d.String()), nil
 }
 
+// UnmarshalJSON Dec64 as a decimal
+func (d *Dec64) UnmarshalJSON(data []byte) (err error) {
+	*d, err = Parse(string(data))
+	return
+}
+
 var (
+	// Expf list of 10^i as float64
 	Expf []float64
+	// Expi list of 10^i as int64
 	Expi []int64
 )
 
