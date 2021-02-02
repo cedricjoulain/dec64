@@ -30,7 +30,7 @@ const Epsilon = 3e-13
 // Parse returns a dec64 form string.
 func Parse(s string) (res Dec64, err error) {
 	res = Empty
-	if len(s) == 0 {
+	if len(s) == 0 || s == "null" {
 		return
 	}
 	start := 0
