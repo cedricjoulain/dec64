@@ -178,6 +178,9 @@ func Parse(s string) (res Dec64, err error) {
 
 // TODO benchmark and use strings.Builder
 func (d Dec64) String() string {
+	if d == Empty {
+		return "null"
+	}
 	// normalize to avoid 1.0000 for example
 	d = Normalize(d)
 	exp := int8(d)
@@ -273,6 +276,9 @@ func init() {
 
 // Float64 converts Dec64 to float64 using precomputed exponent.
 func Float64(d Dec64) (f float64) {
+	if d == Empty {
+		return math.NaN()
+	}
 	if d&0xff > 127 {
 		return float64(int64(d)>>8) / Expf[256-d&0xff]
 	}
