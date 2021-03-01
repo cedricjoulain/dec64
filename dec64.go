@@ -241,7 +241,7 @@ func (d Dec64) String() string {
 }
 
 // MarshalJSON Dec64 as a decimal
-func (d *Dec64) MarshalJSON() ([]byte, error) {
+func (d Dec64) MarshalJSON() ([]byte, error) {
 	return []byte(d.String()), nil
 }
 
