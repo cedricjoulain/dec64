@@ -204,6 +204,60 @@ func TestIsInt(t *testing.T) {
 	testOneIsInt(t, "255.00000", true)
 }
 
+func testOneSignum(t *testing.T, s string, ref int) {
+	d, err := Parse(s)
+	if err != nil {
+		t.Error(err)
+	}
+	if Signum(d) != ref {
+		t.Errorf("%s Signum is %d should be %d", s, Signum(d), ref)
+	}
+}
+
+func TestSignum(t *testing.T) {
+	testOneSignum(t, "0.0002", 1)
+	testOneSignum(t, "20", 1)
+	testOneSignum(t, "-0.000452", -1)
+	testOneSignum(t, "-15487920", -1)
+	testOneSignum(t, "-255.00000", -1)
+	testOneSignum(t, "255.00000", 1)
+	testOneSignum(t, "0", 0)
+	testOneSignum(t, "0.0", 0)
+	testOneSignum(t, "0.000000", 0)
+}
+func testOneRound(t *testing.T, n int64, v, ref string) {
+	dv, err := Parse(v)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	dref, err := Parse(ref)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	dv = Round(dv, n)
+	if !dref.Equal(dv) {
+		t.Errorf("Round(%s %d) = %s should be %s", v, n, dv.String(), ref)
+	}
+}
+
+func TestRound(t *testing.T) {
+	testOneRound(t, 0, "0", "0")
+	testOneRound(t, 0, "0.4", "0")
+	testOneRound(t, 0, "0.5", "1")
+	testOneRound(t, 0, "0.9", "1")
+	testOneRound(t, 0, "1.4", "1")
+	testOneRound(t, 0, "1.5", "2")
+	testOneRound(t, 0, "1.9", "2")
+	testOneRound(t, 0, "-0.4", "0")
+	testOneRound(t, 0, "-0.5", "-1")
+	testOneRound(t, 0, "-0.9", "-1")
+	testOneRound(t, 0, "-1.4", "-1")
+	testOneRound(t, 0, "-1.5", "-2")
+	testOneRound(t, 0, "-1.9", "-2")
+}
+
 // example of list of traded volumes for BTC on 20180511
 var sVolumes = []string{
 	"0.06447466",

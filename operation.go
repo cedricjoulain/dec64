@@ -34,10 +34,11 @@ func Round(d Dec64, n int64) Dec64 {
 		if (n-e) > 1 || (mant%10 < 5 && mant%10 > -5) {
 			mant /= 10
 		} else {
-			mant /= 10
 			if mant > 0 {
+				mant /= 10
 				mant++
 			} else {
+				mant /= 10
 				mant--
 			}
 		}
