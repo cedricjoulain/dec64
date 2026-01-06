@@ -579,6 +579,34 @@ func TestAdd(t *testing.T) {
 	testAdd(t, a, b, ref)
 }
 
+func testMult(t *testing.T, a, b, ref Dec64) {
+	if !ref.Equal(a.Mult(b)) {
+		t.Errorf("%sx%s is %s(%d) should be %s", a, b, a.Mult(b), int64(a.Mult(b)), ref)
+	}
+	if !ref.Equal(b.Mult(a)) {
+		t.Errorf("%sx%s is %s should be %s", b, a, b.Mult(a), ref)
+	}
+}
+
+func TestMult(t *testing.T) {
+	a, err := Parse("0.00000031")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	b, err := Parse("451.00000000")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	ref, err := Parse("0.00013981")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	testMult(t, a, b, ref)
+}
+
 func testBug(t *testing.T) {
 	var a, b, ref Dec64
 	// overflow

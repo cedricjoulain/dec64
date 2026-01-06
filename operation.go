@@ -145,9 +145,9 @@ func (d Dec64) Sub(b Dec64) Dec64 {
 
 // Mult multiplies two dec64.
 func (d Dec64) Mult(b Dec64) Dec64 {
-	mant := (uint64(d) & MMask) * (uint64(b) & MMask)
+	mant := (int64(d) >> 8) * (int64(b) >> 8)
 	e := (int64(d) & 0xff) + (int64(b) & 0xff)
-	return Dec64(int64(mant) | e&0xff)
+	return Dec64(mant<<8 | e&0xff)
 }
 
 // Div TODO implement with dec64.
