@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strconv"
 	"strings"
 )
 
@@ -285,10 +284,56 @@ func Float64(d Dec64) (f float64) {
 	return float64(int64(d)>>8) * Expf[d&0xff]
 }
 
-// FromFloat64 converts float64 to Dec64.
+// FromFloat64 converts float64 to Dec64 using pure base-10 mathematics and precomputed Expf.
 func FromFloat64(f float64) (Dec64, error) {
-	// TODO optimize !
-	return Parse(strconv.FormatFloat(f, 'g', -1, 64))
+	if f == 0 {
+		return 0, nil
+	}
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		// Crockford's dec64 spec defines NaN as an exponent of -128 (0x80)
+		return Dec64(128 & 0xff), errors.New("cannot convert NaN or Inf to dec64")
+	}
+
+	absF := math.Abs(f)
+	// 1. Find the base-10 magnitude to target ~15 decimal digits of precision
+	e10 := int(math.Floor(math.Log10(absF)))
+	shift := 14 - e10
+
+	// 2. Cap shift to Dec64 exponent limits to prevent out-of-bounds array access on Expf
+	if shift > 127 {
+		shift = 127
+	} else if shift < -127 {
+		shift = -127
+	}
+
+	// 3. Use the precomputed Expf array for extremely fast scaling.
+	// Bitwise AND (shift & 0xff) cleanly maps negative shifts into the 129-255 range.
+	coefFloat := f * Expf[shift&0xff]
+
+	// 4. Round to nearest integer to eliminate binary float imprecision
+	coef := int64(math.Round(coefFloat))
+	exp := -shift
+
+	// 5. Normalize by stripping artificial trailing zeros
+	for coef != 0 && coef%10 == 0 {
+		coef /= 10
+		exp++
+	}
+
+	// 6. Validate against Crockford DEC64 boundaries
+	if exp < -127 {
+		return 0, errors.New("underflow: float64 too small for dec64")
+	}
+	if exp > 127 {
+		return 0, errors.New("overflow: float64 too large for dec64")
+	}
+	// 56-bit coefficient check
+	if coef < -36028797018963968 || coef > 36028797018963967 {
+		return 0, errors.New("coefficient overflow")
+	}
+
+	// 7. Pack using bitwise operations
+	return Dec64((coef << 8) | int64(exp&0xff)), nil
 }
 
 // FromInt64 converts int64 to Dec64
