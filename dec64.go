@@ -295,44 +295,64 @@ func FromFloat64(f float64) (Dec64, error) {
 	}
 
 	absF := math.Abs(f)
-	// 1. Find the base-10 magnitude to target ~15 decimal digits of precision
-	e10 := int(math.Floor(math.Log10(absF)))
+
+	// 1. Fast base-10 magnitude extraction
+	// Extract the base-2 exponent directly from the IEEE 754 bit representation
+	bits := math.Float64bits(absF)
+	exp2 := int((bits>>52)&0x7FF) - 1023
+	// Multiply by log10(2) approx (0.30102999566) to get base-10 exponent.
+	// This completely bypasses the expensive math.Log10 call.
+	e10 := int(math.Floor(float64(exp2) * 0.3010299956639812))
+
 	shift := 14 - e10
 
-	// 2. Cap shift to Dec64 exponent limits to prevent out-of-bounds array access on Expf
+	// 2. Cap shift to Dec64 exponent limits
 	if shift > 127 {
 		shift = 127
 	} else if shift < -127 {
 		shift = -127
 	}
 
-	// 3. Use the precomputed Expf array for extremely fast scaling.
-	// Bitwise AND (shift & 0xff) cleanly maps negative shifts into the 129-255 range.
+	// 3. Fast scaling
 	coefFloat := f * Expf[shift&0xff]
 
-	// 4. Round to nearest integer to eliminate binary float imprecision
-	coef := int64(math.Round(coefFloat))
+	// 4. Fast rounding (bypasses math.Round overhead)
+	var coef int64
+	if coefFloat < 0 {
+		coef = int64(coefFloat - 0.5)
+	} else {
+		coef = int64(coefFloat + 0.5)
+	}
 	exp := -shift
 
-	// 5. Normalize by stripping artificial trailing zeros
-	for coef != 0 && coef%10 == 0 {
-		coef /= 10
-		exp++
+	// 5. Fast Normalization
+	// Checking by 100 first halves the iterations for long trailing zeros
+	for coef != 0 {
+		if coef%100 == 0 {
+			coef /= 100
+			exp += 2
+			continue
+		}
+		if coef%10 == 0 {
+			coef /= 10
+			exp++
+			continue
+		}
+		break
 	}
 
-	// 6. Validate against Crockford DEC64 boundaries
+	// 6. Validate boundaries
 	if exp < -127 {
 		return 0, errors.New("underflow: float64 too small for dec64")
 	}
 	if exp > 127 {
 		return 0, errors.New("overflow: float64 too large for dec64")
 	}
-	// 56-bit coefficient check
 	if coef < -36028797018963968 || coef > 36028797018963967 {
 		return 0, errors.New("coefficient overflow")
 	}
 
-	// 7. Pack using bitwise operations
+	// 7. Pack
 	return Dec64((coef << 8) | int64(exp&0xff)), nil
 }
 
